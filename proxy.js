@@ -14,7 +14,7 @@ app.post('/api/textrazor', async (req, res) => {
       `text=${encodeURIComponent(req.body.text)}&extractors=entities`,
       {
         headers: {
-          'x-textrazor-key': '565ab24375e33cfb29df2c8d8fdeb6c0bab13ed1b8cd7d89db9e73d6',
+          'x-textrazor-key': '',
           'Content-Type': 'application/x-www-form-urlencoded',
         },
       }
