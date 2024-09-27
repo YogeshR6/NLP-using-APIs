@@ -37,14 +37,21 @@ function DisplayResult({ data }) {
               {entity.entityId}
             </h5>
             <p className="block font-sans text-base font-light leading-relaxed text-inherit antialiased">
+              Type: {entity.type ? entity.type.join(', ') : 'N/A'}
+            </p>
+            <p className="block font-sans text-base font-light leading-relaxed text-inherit antialiased">
               Confidence Score: {entity.confidenceScore.toFixed(2)}
             </p>
             <p className="block font-sans text-base font-light leading-relaxed text-inherit antialiased">
               Relevance Score: {entity.relevanceScore.toFixed(2)}
             </p>
-            <a className="!font-medium !text-blue-gray-900 !transition-colors hover:!text-pink-500" href={entity.wikiLink}>
-              <button className="flex select-none items-center gap-2 rounded-lg py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-pink-500 transition-all hover:bg-pink-500/10 active:bg-pink-500/30 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" data-ripple-dark="true" >More info</button>
-            </a>
+            {entity.wikiLink && (
+              <a className="!font-medium !text-blue-gray-900 !transition-colors hover:!text-pink-500" href={entity.wikiLink}>
+                <button className="flex select-none items-center gap-2 rounded-lg py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-pink-500 transition-all hover:bg-pink-500/10 active:bg-pink-500/30 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" data-ripple-dark="true">
+                  More info
+                </button>
+              </a>
+            )}
           </div>
         ))}
       </div>
@@ -62,13 +69,62 @@ function DisplayResult({ data }) {
               {topic.label}
             </h5>
             <p className="block font-sans text-base font-light leading-relaxed text-inherit antialiased">
-              Score: {topic.score.toFixed(2)}
+              Relevance Score: {topic.score.toFixed(2)}
             </p>
+            {topic.wikiLink && (
+              <a className="!font-medium !text-blue-gray-900 !transition-colors hover:!text-pink-500" href={topic.wikiLink}>
+                <button className="flex select-none items-center gap-2 rounded-lg py-2 px-4 text-center align-middle font-sans text-xs font-bold uppercase text-pink-500 transition-all hover:bg-pink-500/10 active:bg-pink-500/30 disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none" type="button" data-ripple-dark="true">
+                  More info
+                </button>
+              </a>
+            )}
           </div>
         ))}
       </div>
     </div>
   );
+
+  const getFullPartOfSpeech = (tag) => {
+    const posMap = {
+      CC: "Coordinating conjunction",
+      CD: "Cardinal number",
+      DT: "Determiner",
+      EX: "Existential there",
+      FW: "Foreign word",
+      IN: "Preposition or subordinating conjunction",
+      JJ: "Adjective",
+      JJR: "Adjective, comparative",
+      JJS: "Adjective, superlative",
+      LS: "List item marker",
+      MD: "Modal",
+      NN: "Noun, singular or mass",
+      NNS: "Noun, plural",
+      NNP: "Proper noun, singular",
+      NNPS: "Proper noun, plural",
+      PDT: "Predeterminer",
+      POS: "Possessive ending",
+      PRP: "Personal pronoun",
+      "PRP$": "Possessive pronoun",
+      RB: "Adverb",
+      RBR: "Adverb, comparative",
+      RBS: "Adverb, superlative",
+      RP: "Particle",
+      SYM: "Symbol",
+      TO: "to",
+      UH: "Interjection",
+      VB: "Verb, base form",
+      VBD: "Verb, past tense",
+      VBG: "Verb, gerund or present participle",
+      VBN: "Verb, past participle",
+      VBP: "Verb, non-3rd person singular present",
+      VBZ: "Verb, 3rd person singular present",
+      WDT: "Wh-determiner",
+      WP: "Wh-pronoun",
+      "WP$": "Possessive wh-pronoun",
+      WRB: "Wh-adverb"
+    };
+    return posMap[tag] || tag;
+  };
 
   const renderWords = () => (
     <div className="words bg-white text-black flex flex-col justify-end items-center my-2">
@@ -84,7 +140,7 @@ function DisplayResult({ data }) {
                   {word.token}
                 </h5>
                 <p className="block font-sans text-base font-light leading-relaxed text-inherit antialiased">
-                  Part of Speech: {word.partOfSpeech}
+                  Part of Speech: {getFullPartOfSpeech(word.partOfSpeech)}
                 </p>
                 <p className="block font-sans text-base font-light leading-relaxed text-inherit antialiased">
                   Lemma: {word.lemma}
@@ -131,12 +187,20 @@ function DisplayResult({ data }) {
       ).join(' ');
     };
 
+    const uniqueRelations = data.data.relations.reduce((acc, relation) => {
+      const key = relation.params.map(param => `${param.relation}:${getWordsByPositions(param.wordPositions)}`).join('|');
+      if (!acc[key]) {
+        acc[key] = relation;
+      }
+      return acc;
+    }, {});
+
     return (
       <div className="relations bg-white text-black flex flex-col justify-end items-center my-2">
         <h3 className='bold text-2xl'>Relations</h3>
         <hr />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
-          {data.data.relations.map((relation, index) => (
+          {Object.values(uniqueRelations).map((relation, index) => (
             <div key={index} className="relative p-4 flex flex-col rounded-xl bg-white bg-clip-border text-gray-700 shadow-lg">
               <h5 className="mb-2 block font-sans text-xl font-semibold leading-snug tracking-normal text-blue-gray-900 antialiased">
                 Relation {index + 1}
