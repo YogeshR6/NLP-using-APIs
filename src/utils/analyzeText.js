@@ -1,11 +1,11 @@
 export async function analyzeText(text, analysisType) {
-  const url = "http://localhost:5000/api/textrazor";
-
+  const url = "https://api.textrazor.com/";
   try {
     const response = await fetch(url, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "X-TextRazor-Key": import.meta.env.VITE_RAZOR_KEY,
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: JSON.stringify({
         text: text,

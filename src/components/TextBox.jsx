@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { analyzeText } from '../utils/analyzeText';
 
-function TextBox({ setData }) {
+function TextBox({ setData, setNumberOfRequests }) {
   const [inputText, setInputText] = useState('');
   const [analysisType, setAnalysisType] = useState('entities');
 
@@ -10,6 +10,7 @@ function TextBox({ setData }) {
       const response = await analyzeText(inputText, analysisType);
       setData({ type: analysisType, data: response });
       console.log('Analysis results:', response);
+      setNumberOfRequests(prev => prev + 1);
     } catch (error) {
       console.error('Error analyzing text:', error);
     }
